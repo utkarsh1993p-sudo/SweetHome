@@ -1,18 +1,25 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Playfair_Display_SC, Karla } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const playfair = Playfair_Display_SC({
+  variable: "--font-display",
   subsets: ["latin"],
+  weight: ["400", "700"],
+});
+
+const karla = Karla({
+  variable: "--font-body",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "SweetHome Restaurant — Authentic Indian Cuisine",
+  title: "Sweet Home — Pure Veg Garden Restaurant",
   description:
-    "Experience the warmth of home-cooked Indian food at SweetHome Restaurant. Dine in, order online, or book your table.",
+    "Authentic pure vegetarian Indian cuisine in a warm garden setting. 150+ dishes — South Indian, Hindustani, Chinese, Sizzlers, Mastanis. Dine in, order online, or book your table.",
 };
 
 export default function RootLayout({
@@ -21,8 +28,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} h-full`}>
-      <body className="min-h-screen flex flex-col antialiased">
+    <html lang="en" className={`${playfair.variable} ${karla.variable} h-full`}>
+      <body className="min-h-screen flex flex-col antialiased bg-[--color-bg] text-[--color-fg] font-body">
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />
