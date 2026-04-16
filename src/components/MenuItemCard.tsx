@@ -1,79 +1,97 @@
 "use client";
 
 import type { MenuItem } from "@/lib/types";
+import { categoryEmojis } from "@/lib/menuData";
 import { useCartStore } from "@/store/cartStore";
+import { motion } from "framer-motion";
 
 interface MenuItemCardProps {
   item: MenuItem;
 }
 
 export default function MenuItemCard({ item }: MenuItemCardProps) {
-  const { items, addItem, removeItem, updateQuantity } = useCartStore();
+  const { items, addItem, updateQuantity } = useCartStore();
   const cartItem = items.find((i) => i.menuItem.id === item.id);
   const qty = cartItem?.quantity ?? 0;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-orange-100 overflow-hidden hover:shadow-md transition-shadow">
-      {/* Image placeholder */}
-      <div className="h-44 bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center relative">
-        <span className="text-5xl">
-          {item.category === "starters" && "🍢"}
-          {item.category === "mains" && "🍛"}
-          {item.category === "breads" && "🫓"}
-          {item.category === "desserts" && "🍮"}
-          {item.category === "drinks" && "🥤"}
-        </span>
-        {item.isPopular && (
-          <span className="absolute top-3 left-3 bg-orange-600 text-white text-xs font-bold px-2 py-1 rounded-full">
-            Popular
-          </span>
-        )}
-        <span
-          className={`absolute top-3 right-3 w-5 h-5 rounded-sm border-2 flex items-center justify-center text-xs font-bold ${
-            item.isVeg
-              ? "border-green-600 text-green-600"
-              : "border-red-600 text-red-600"
-          }`}
-        >
-          {item.isVeg ? "V" : "N"}
-        </span>
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      whileHover={{ y: -4, boxShadow: "0 12px 28px rgba(0,0,0,0.10)" }}
+      transition={{ duration: 0.25 }}
+      className="bg-white rounded-2xl border border-green-100 overflow-hidden"
+    >
+      {/* Image / icon area */}
+      <div className="h-36 bg-gradient-to-br from-green-50 to-teal-50 flex items-center justify-center relative">
+        <span className="text-5xl select-none">{categoryEmojis[item.category]}</span>
+        <div className="absolute top-0 left-0 right-0 flex justify-between items-start p-2">
+          {item.isPopular && (
+            <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+              Popular
+            </span>
+          )}
+          {item.isSeasonal && (
+            <span className="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full ml-auto">
+              Seasonal
+            </span>
+          )}
+        </div>
+        {/* Pure veg dot */}
+        <div className="absolute bottom-2 right-2 w-5 h-5 border-2 border-green-600 rounded-sm flex items-center justify-center">
+          <div className="w-2.5 h-2.5 rounded-full bg-green-600" />
+        </div>
       </div>
 
-      <div className="p-4">
-        <h3 className="font-semibold text-gray-900">{item.name}</h3>
-        <p className="text-sm text-gray-500 mt-1 line-clamp-2">{item.description}</p>
+      <div className="p-3">
+        <h3 className="font-bold text-gray-900 text-sm leading-tight">{item.name}</h3>
+        <p className="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed">{item.description}</p>
 
-        <div className="flex items-center justify-between mt-4">
-          <span className="font-bold text-orange-700 text-lg">
-            ₹{item.price}
-          </span>
+        {item.priceVariant && (
+          <p className="text-xs text-teal-600 font-medium mt-1">₹{item.priceVariant}</p>
+        )}
+
+        <div className="flex items-center justify-between mt-3">
+          <span className="font-bold text-red-700 text-base">₹{item.price}</span>
 
           {qty === 0 ? (
-            <button
+            <motion.button
+              whileTap={{ scale: 0.92 }}
               onClick={() => addItem(item)}
-              className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-1.5 rounded-full text-sm font-medium transition-colors"
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded-full text-xs font-bold transition-colors"
             >
-              Add
-            </button>
+              ADD
+            </motion.button>
           ) : (
-            <div className="flex items-center gap-2">
-              <button
+            <div className="flex items-center gap-1.5">
+              <motion.button
+                whileTap={{ scale: 0.85 }}
                 onClick={() => updateQuantity(item.id, qty - 1)}
-                className="w-8 h-8 rounded-full border-2 border-orange-600 text-orange-600 font-bold hover:bg-orange-50 flex items-center justify-center"
+                className="w-7 h-7 rounded-full border-2 border-green-600 text-green-700 font-bold hover:bg-green-50 flex items-center justify-center text-sm"
               >
                 −
-              </button>
-              <span className="font-semibold w-5 text-center">{qty}</span>
-              <button
+              </motion.button>
+              <motion.span
+                key={qty}
+                initial={{ scale: 1.3 }}
+                animate={{ scale: 1 }}
+                className="font-bold w-5 text-center text-sm"
+              >
+                {qty}
+              </motion.span>
+              <motion.button
+                whileTap={{ scale: 0.85 }}
                 onClick={() => addItem(item)}
-                className="w-8 h-8 rounded-full bg-orange-600 text-white font-bold hover:bg-orange-700 flex items-center justify-center"
+                className="w-7 h-7 rounded-full bg-green-600 text-white font-bold hover:bg-green-700 flex items-center justify-center text-sm"
               >
                 +
-              </button>
+              </motion.button>
             </div>
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

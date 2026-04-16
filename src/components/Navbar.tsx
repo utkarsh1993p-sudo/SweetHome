@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useCartStore } from "@/store/cartStore";
+import SweetHomeLogo from "./SweetHomeLogo";
+import { motion, AnimatePresence } from "framer-motion";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -19,14 +21,11 @@ export default function Navbar() {
   const totalItems = useCartStore((s) => s.totalItems());
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-orange-100 shadow-sm">
+    <nav className="sticky top-0 z-50 bg-white/97 backdrop-blur border-b border-green-100 shadow-sm">
       <div className="max-w-6xl mx-auto px-4 flex items-center justify-between h-16">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          <span className="text-2xl">🏠</span>
-          <span className="font-bold text-xl text-orange-700 tracking-tight">
-            Sweet<span className="text-amber-500">Home</span>
-          </span>
+        <Link href="/" className="flex items-center">
+          <SweetHomeLogo size="sm" variant="color" />
         </Link>
 
         {/* Desktop links */}
@@ -35,9 +34,9 @@ export default function Navbar() {
             <Link
               key={link.href}
               href={link.href}
-              className={`text-sm font-medium transition-colors hover:text-orange-600 ${
+              className={`text-sm font-semibold transition-colors hover:text-red-600 ${
                 pathname === link.href
-                  ? "text-orange-600 border-b-2 border-orange-600 pb-0.5"
+                  ? "text-red-600 border-b-2 border-red-600 pb-0.5"
                   : "text-gray-600"
               }`}
             >
@@ -46,14 +45,22 @@ export default function Navbar() {
           ))}
           <Link
             href="/order"
-            className="relative ml-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors"
+            className="relative ml-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full text-sm font-semibold transition-colors"
           >
             Cart
-            {totalItems > 0 && (
-              <span className="absolute -top-2 -right-2 bg-amber-400 text-orange-900 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                {totalItems}
-              </span>
-            )}
+            <AnimatePresence>
+              {totalItems > 0 && (
+                <motion.span
+                  key={totalItems}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0 }}
+                  className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"
+                >
+                  {totalItems}
+                </motion.span>
+              )}
+            </AnimatePresence>
           </Link>
         </div>
 
@@ -74,29 +81,37 @@ export default function Navbar() {
       </div>
 
       {/* Mobile menu */}
-      {mobileOpen && (
-        <div className="md:hidden bg-white border-t border-orange-100 px-4 pb-4">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setMobileOpen(false)}
-              className={`block py-3 text-sm font-medium border-b border-gray-100 ${
-                pathname === link.href ? "text-orange-600" : "text-gray-600"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
-          <Link
-            href="/order"
-            onClick={() => setMobileOpen(false)}
-            className="block mt-3 bg-orange-600 text-white text-center py-2 rounded-full text-sm font-medium"
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="md:hidden bg-white border-t border-green-100 px-4 pb-4 overflow-hidden"
           >
-            Cart {totalItems > 0 && `(${totalItems})`}
-          </Link>
-        </div>
-      )}
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileOpen(false)}
+                className={`block py-3 text-sm font-semibold border-b border-gray-100 ${
+                  pathname === link.href ? "text-red-600" : "text-gray-600"
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+            <Link
+              href="/order"
+              onClick={() => setMobileOpen(false)}
+              className="block mt-3 bg-red-600 text-white text-center py-2 rounded-full text-sm font-semibold"
+            >
+              Cart {totalItems > 0 && `(${totalItems})`}
+            </Link>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 }

@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useCartStore } from "@/store/cartStore";
-import { categoryLabels } from "@/lib/menuData";
+import { categoryLabels, categoryEmojis } from "@/lib/menuData";
 
 export default function OrderPage() {
   return (
@@ -121,12 +121,8 @@ function OrderPageContent() {
               key={cartItem.menuItem.id}
               className="flex items-center gap-4 bg-white rounded-2xl p-4 shadow-sm border border-orange-100"
             >
-              <div className="w-14 h-14 bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl flex items-center justify-center text-2xl shrink-0">
-                {cartItem.menuItem.category === "starters" && "🍢"}
-                {cartItem.menuItem.category === "mains" && "🍛"}
-                {cartItem.menuItem.category === "breads" && "🫓"}
-                {cartItem.menuItem.category === "desserts" && "🍮"}
-                {cartItem.menuItem.category === "drinks" && "🥤"}
+              <div className="w-14 h-14 bg-gradient-to-br from-green-50 to-teal-50 rounded-xl flex items-center justify-center text-2xl shrink-0">
+                {categoryEmojis[cartItem.menuItem.category]}
               </div>
 
               <div className="flex-1 min-w-0">

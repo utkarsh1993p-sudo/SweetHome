@@ -3,18 +3,34 @@ export interface MenuItem {
   name: string;
   description: string;
   price: number;
+  priceVariant?: string; // e.g. "100 / 145" for dual-priced items
   category: MenuCategory;
-  image: string;
-  isVeg: boolean;
   isPopular?: boolean;
+  isSeasonal?: boolean;
 }
 
 export type MenuCategory =
-  | "starters"
-  | "mains"
+  | "beverages"
+  | "refreshments"
+  | "sandwiches"
+  | "snacks"
+  | "south-india"
+  | "soups"
+  | "pizzas"
+  | "pav-bhaji"
+  | "tandoori"
+  | "hindustani"
   | "breads"
+  | "rice"
+  | "chinese-starters"
+  | "chinese-mains"
+  | "sizzlers"
+  | "salads"
   | "desserts"
-  | "drinks";
+  | "milkshakes"
+  | "mastanis"
+  | "juices"
+  | "ice-cream";
 
 export interface CartItem {
   menuItem: MenuItem;
@@ -41,4 +57,10 @@ export interface Reservation {
   time: string;
   guests: number;
   specialRequests?: string;
+}
+
+export interface CategoryGroup {
+  label: string;
+  categories: MenuCategory[];
+  emoji: string;
 }

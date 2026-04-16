@@ -1,12 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fffbf5;
-  --foreground: #1a0a00;
-  --primary: #c2410c;
-  --primary-light: #ea580c;
-  --accent: #f59e0b;
-  --muted: #fef3c7;
+  --background: #f8fdf8;
+  --foreground: #0a1a0a;
 }
 
 @theme inline {
@@ -24,4 +20,13 @@ body {
 
 html {
   scroll-behavior: smooth;
+}
+
+/* Hide scrollbar for category pills */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
