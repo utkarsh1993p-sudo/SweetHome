@@ -1,21 +1,42 @@
+"use client";
+
 import Link from "next/link";
 import SweetHomeLogo from "./SweetHomeLogo";
 import { Phone, Clock, Leaf, ExternalLink } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+
+const EASE = [0.25, 0.1, 0.25, 1] as const;
 
 const links = [
-  { href: "/menu",            label: "Our Menu" },
-  { href: "/order",           label: "Order Online" },
-  { href: "/reservations",    label: "Reservations" },
-  { href: "/about",           label: "About Us" },
-  { href: "/admin/qr-codes",  label: "Table QR Codes" },
+  { href: "/menu",           label: "Our Menu" },
+  { href: "/order",          label: "Order Online" },
+  { href: "/reservations",   label: "Reservations" },
+  { href: "/about",          label: "About Us" },
+  { href: "/admin/qr-codes", label: "Table QR Codes" },
 ];
 
+const columnVariant = {
+  hidden: { opacity: 0, y: 24 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE } },
+};
+
 export default function Footer() {
+  const reduced = useReducedMotion();
+
   return (
     <footer className="bg-[#1A0000] text-red-100" role="contentinfo">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
+      <motion.div
+        variants={{
+          hidden: {},
+          show: { transition: { staggerChildren: 0.12 } },
+        }}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, margin: "-60px" }}
+        className="max-w-7xl mx-auto px-4 sm:px-6 py-14 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10"
+      >
         {/* Brand */}
-        <div>
+        <motion.div variants={columnVariant}>
           <div className="mb-4">
             <SweetHomeLogo size="sm" variant="white" />
           </div>
@@ -27,16 +48,22 @@ export default function Footer() {
             <Leaf size={14} className="text-green-400" />
             <span>Certified Pure Vegetarian</span>
           </div>
-        </div>
+        </motion.div>
 
         {/* Quick links */}
-        <nav aria-label="Footer navigation">
+        <motion.nav variants={columnVariant} aria-label="Footer navigation">
           <h3 className="font-display text-white text-sm uppercase tracking-widest mb-4">
             Quick Links
           </h3>
           <ul className="space-y-2">
-            {links.map((l) => (
-              <li key={l.href}>
+            {links.map((l, i) => (
+              <motion.li
+                key={l.href}
+                initial={reduced ? {} : { opacity: 0, x: -12 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 + i * 0.06, duration: 0.45, ease: EASE }}
+              >
                 <Link
                   href={l.href}
                   className="text-sm text-red-400 hover:text-white transition-colors duration-150 cursor-pointer inline-flex items-center gap-1 group"
@@ -44,13 +71,13 @@ export default function Footer() {
                   {l.label}
                   <ExternalLink size={10} className="opacity-0 group-hover:opacity-60 transition-opacity" />
                 </Link>
-              </li>
+              </motion.li>
             ))}
           </ul>
-        </nav>
+        </motion.nav>
 
         {/* Contact */}
-        <div>
+        <motion.div variants={columnVariant}>
           <h3 className="font-display text-white text-sm uppercase tracking-widest mb-4">
             Contact Us
           </h3>
@@ -75,12 +102,18 @@ export default function Footer() {
             <p>* Milkshake with Ice Cream: ₹49 extra</p>
             <p>* Outside eatables not allowed</p>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
-      <div className="border-t border-red-900/50 py-5 px-4 text-center text-xs text-red-600">
+      <motion.div
+        initial={reduced ? {} : { opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, ease: EASE }}
+        className="border-t border-red-900/50 py-5 px-4 text-center text-xs text-red-600"
+      >
         &copy; {new Date().getFullYear()} Sweet Home Pure Veg Garden Restaurant. All rights reserved.
-      </div>
+      </motion.div>
     </footer>
   );
 }

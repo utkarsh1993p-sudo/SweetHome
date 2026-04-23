@@ -2,35 +2,59 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ShoppingCart, Menu, X } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import SweetHomeLogo from "./SweetHomeLogo";
 import { motion, AnimatePresence } from "framer-motion";
 
 const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/menu", label: "Menu" },
-  { href: "/order", label: "Order" },
+  { href: "/",             label: "Home" },
+  { href: "/menu",         label: "Menu" },
+  { href: "/order",        label: "Order" },
   { href: "/reservations", label: "Reservations" },
-  { href: "/about", label: "About" },
+  { href: "/about",        label: "About" },
 ];
 
 export default function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const totalItems = useCartStore((s) => s.totalItems());
+
+  const isHome = pathname === "/";
+  const transparent = isHome && !scrolled;
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 80);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    setScrolled(window.scrollY > 80);
+  }, [pathname]);
 
   return (
     <nav
-      className="sticky top-0 z-50 bg-white border-b border-[--color-border] shadow-sm"
+      className={[
+        "sticky top-0 z-50 border-b transition-all duration-300",
+        transparent
+          ? "bg-transparent border-transparent"
+          : "bg-white/95 backdrop-blur-md border-[--color-border] shadow-sm",
+      ].join(" ")}
       role="navigation"
       aria-label="Main navigation"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
         {/* Logo */}
-        <Link href="/" aria-label="Sweet Home Home" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-primary] rounded-lg">
-          <SweetHomeLogo size="sm" variant="color" />
+        <Link
+          href="/"
+          aria-label="Sweet Home Home"
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-primary] rounded-lg"
+        >
+          <SweetHomeLogo size="sm" variant={transparent ? "white" : "color"} />
         </Link>
 
         {/* Desktop nav */}
@@ -39,19 +63,22 @@ export default function Navbar() {
             <Link
               key={link.href}
               href={link.href}
-              className={`
-                relative px-3 py-2 text-sm font-semibold rounded-lg transition-colors duration-150 cursor-pointer
-                ${pathname === link.href
-                  ? "text-[--color-primary]"
-                  : "text-[--color-fg-muted] hover:text-[--color-fg] hover:bg-[--color-surface]"
-                }
-              `}
+              className={[
+                "relative px-3 py-2 text-sm font-semibold rounded-lg transition-colors duration-200 cursor-pointer",
+                pathname === link.href
+                  ? transparent ? "text-white" : "text-[--color-primary]"
+                  : transparent
+                    ? "text-white/70 hover:text-white hover:bg-white/10"
+                    : "text-[--color-fg-muted] hover:text-[--color-fg] hover:bg-[--color-surface]",
+              ].join(" ")}
             >
               {link.label}
               {pathname === link.href && (
                 <motion.span
                   layoutId="nav-indicator"
-                  className="absolute bottom-0 left-3 right-3 h-0.5 bg-[--color-primary] rounded-full"
+                  className={`absolute bottom-0 left-3 right-3 h-0.5 rounded-full ${
+                    transparent ? "bg-white" : "bg-[--color-primary]"
+                  }`}
                 />
               )}
             </Link>
@@ -84,7 +111,12 @@ export default function Navbar() {
           </Link>
 
           <button
-            className="md:hidden p-2 rounded-lg text-[--color-fg-muted] hover:bg-[--color-surface] hover:text-[--color-fg] transition-colors duration-150 cursor-pointer"
+            className={[
+              "md:hidden p-2 rounded-lg transition-colors duration-200 cursor-pointer",
+              transparent
+                ? "text-white/80 hover:text-white hover:bg-white/10"
+                : "text-[--color-fg-muted] hover:bg-[--color-surface] hover:text-[--color-fg]",
+            ].join(" ")}
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileOpen}
@@ -103,7 +135,7 @@ export default function Navbar() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
+            transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }}
             className="md:hidden bg-white border-t border-[--color-border] overflow-hidden"
           >
             <div className="px-4 pb-4 pt-2 space-y-1">
@@ -112,13 +144,12 @@ export default function Navbar() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileOpen(false)}
-                  className={`
-                    block px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors duration-150 cursor-pointer
-                    ${pathname === link.href
+                  className={[
+                    "block px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors duration-150 cursor-pointer",
+                    pathname === link.href
                       ? "text-[--color-primary] bg-red-50"
-                      : "text-[--color-fg-muted] hover:text-[--color-fg] hover:bg-[--color-surface]"
-                    }
-                  `}
+                      : "text-[--color-fg-muted] hover:text-[--color-fg] hover:bg-[--color-surface]",
+                  ].join(" ")}
                 >
                   {link.label}
                 </Link>

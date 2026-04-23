@@ -1,44 +1,81 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
 import { menuItems } from "@/lib/menuData";
 import MenuItemCard from "@/components/MenuItemCard";
 import SweetHomeLogo from "@/components/SweetHomeLogo";
 import {
   UtensilsCrossed, Clock, Leaf, Phone, ChevronRight,
-  QrCode, CalendarCheck, Star, Truck
+  QrCode, CalendarCheck, Star, Truck,
 } from "lucide-react";
 
-/* ── Animation helpers (respect prefers-reduced-motion) ── */
-function useFade() {
+/* ── Easing ───────────────────────────────────────────────────────────── */
+const EASE = [0.25, 0.1, 0.25, 1] as const;
+const EASE_CINEMA = [0.76, 0, 0.24, 1] as const;
+
+/* ── Word-split text reveal ───────────────────────────────────────────── */
+function SplitText({
+  text,
+  delay = 0,
+  className,
+}: {
+  text: string;
+  delay?: number;
+  className?: string;
+}) {
   const reduced = useReducedMotion();
-  return {
-    hidden:  reduced ? {} : { opacity: 0, y: 24 },
-    show:    { opacity: 1, y: 0 },
-    transition: reduced ? {} : { duration: 0.5, ease: "easeOut" },
-  };
+  return (
+    <span className={className} style={{ perspective: "800px" }}>
+      {text.split(" ").map((word, i) => (
+        <motion.span
+          key={i}
+          className="inline-block"
+          style={{ marginRight: "0.3em", transformOrigin: "50% 100%" }}
+          initial={reduced ? {} : { opacity: 0, rotateX: 90, y: 28 }}
+          whileInView={{ opacity: 1, rotateX: 0, y: 0 }}
+          viewport={{ once: true }}
+          transition={{
+            delay: delay + i * 0.07,
+            duration: 0.6,
+            ease: EASE_CINEMA,
+          }}
+        >
+          {word}
+        </motion.span>
+      ))}
+    </span>
+  );
 }
 
+/* ── Shared stagger helper ────────────────────────────────────────────── */
 const stagger = (delay = 0.1) => ({
   hidden: {},
   show: { transition: { staggerChildren: delay } },
 });
 
-/* ── Category shortcuts ── */
+const cardVariant = {
+  hidden: { opacity: 0, y: 20 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.55, ease: EASE },
+  },
+};
+
+/* ── Category shortcuts ───────────────────────────────────────────────── */
 const QUICK_CATS = [
-  { href: "/menu?cat=south-india",     label: "South Indian",  icon: "🫓" },
-  { href: "/menu?cat=hindustani",      label: "Main Course",   icon: "🍛" },
-  { href: "/menu?cat=chinese-starters",label: "Chinese",       icon: "🥢" },
-  { href: "/menu?cat=tandoori",        label: "Tandoori",      icon: "🔥" },
-  { href: "/menu?cat=pizzas",          label: "Pizzas",        icon: "🍕" },
-  { href: "/menu?cat=sizzlers",        label: "Sizzlers",      icon: "♨️" },
-  { href: "/menu?cat=desserts",        label: "Desserts",      icon: "🍨" },
-  { href: "/menu?cat=mastanis",        label: "Mastanis",      icon: "🧁" },
+  { href: "/menu?cat=south-india",      label: "South Indian",  icon: "🫓" },
+  { href: "/menu?cat=hindustani",       label: "Main Course",   icon: "🍛" },
+  { href: "/menu?cat=chinese-starters", label: "Chinese",       icon: "🥢" },
+  { href: "/menu?cat=tandoori",         label: "Tandoori",      icon: "🔥" },
+  { href: "/menu?cat=pizzas",           label: "Pizzas",        icon: "🍕" },
+  { href: "/menu?cat=sizzlers",         label: "Sizzlers",      icon: "♨️" },
+  { href: "/menu?cat=desserts",         label: "Desserts",      icon: "🍨" },
+  { href: "/menu?cat=mastanis",         label: "Mastanis",      icon: "🧁" },
 ];
 
 export default function HomePage() {
-  const fade = useFade();
   const reduced = useReducedMotion();
   const popular = menuItems.filter((i) => i.isPopular).slice(0, 8);
 
@@ -52,7 +89,7 @@ export default function HomePage() {
         className="relative overflow-hidden bg-[#1A0000] text-white"
         style={{ minHeight: "min(600px, 90vh)" }}
       >
-        {/* Background texture */}
+        {/* Background gradients */}
         <div
           aria-hidden
           className="absolute inset-0"
@@ -62,37 +99,60 @@ export default function HomePage() {
           }}
         />
 
-        {/* Decorative rings — skip if reduced motion */}
+        {/* Decorative rings */}
         {!reduced && (
           <div aria-hidden className="absolute inset-0 pointer-events-none overflow-hidden">
             {[420, 600, 780].map((size, i) => (
               <motion.div
                 key={size}
                 className="absolute rounded-full border border-white/5"
-                style={{ width: size, height: size, top: "50%", left: "55%", translateX: "-50%", translateY: "-50%" }}
+                style={{
+                  width: size,
+                  height: size,
+                  top: "50%",
+                  left: "55%",
+                  translateX: "-50%",
+                  translateY: "-50%",
+                }}
                 animate={{ scale: [1, 1.04, 1], opacity: [0.4, 0.7, 0.4] }}
-                transition={{ duration: 6 + i * 2, repeat: Infinity, ease: "easeInOut" }}
+                transition={{
+                  duration: 6 + i * 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
               />
             ))}
           </div>
         )}
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-20 md:py-28 grid md:grid-cols-2 gap-12 md:gap-20 items-center">
-          {/* Left */}
-          <motion.div variants={stagger(0.12)} initial="hidden" animate="show">
-            <motion.div variants={fade} className="mb-6">
+          {/* Left — explicit timed sequence */}
+          <div>
+            {/* Logo */}
+            <motion.div
+              initial={reduced ? {} : { opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.75, ease: EASE }}
+              className="mb-6"
+            >
               <SweetHomeLogo size="lg" variant="white" />
             </motion.div>
 
-            <motion.p
-              variants={fade}
-              className="text-lg md:text-xl text-red-200 leading-relaxed max-w-md mb-8"
-            >
-              Pure vegetarian garden dining — authentic recipes, fresh ingredients,
-              and the warmth of home in every bite.
-            </motion.p>
+            {/* Tagline — word-by-word reveal */}
+            <p className="text-lg md:text-xl text-red-200 leading-relaxed max-w-md mb-8">
+              <SplitText
+                text="Pure vegetarian garden dining — authentic recipes, fresh ingredients, and the warmth of home in every bite."
+                delay={0.3}
+              />
+            </p>
 
-            <motion.div variants={fade} className="flex flex-wrap gap-3 mb-8">
+            {/* CTA buttons */}
+            <motion.div
+              initial={reduced ? {} : { opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.85, duration: 0.55, ease: EASE }}
+              className="flex flex-wrap gap-3 mb-8"
+            >
               <Link
                 href="/menu"
                 className="inline-flex items-center gap-2 bg-[--color-primary] hover:bg-[--color-primary-hover] text-white font-semibold px-6 py-3 rounded-full transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[--color-primary]"
@@ -110,7 +170,12 @@ export default function HomePage() {
             </motion.div>
 
             {/* Trust indicators */}
-            <motion.div variants={fade} className="flex flex-wrap gap-4 text-sm text-red-300">
+            <motion.div
+              initial={reduced ? {} : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.05, duration: 0.5, ease: EASE }}
+              className="flex flex-wrap gap-4 text-sm text-red-300"
+            >
               <span className="flex items-center gap-1.5">
                 <Leaf size={14} className="text-green-400" />
                 100% Pure Veg
@@ -124,9 +189,9 @@ export default function HomePage() {
                 Home Delivery
               </span>
             </motion.div>
-          </motion.div>
+          </div>
 
-          {/* Right — Stat cards */}
+          {/* Right — staggered stat cards */}
           <motion.div
             variants={stagger(0.1)}
             initial="hidden"
@@ -141,8 +206,9 @@ export default function HomePage() {
             ].map((s) => (
               <motion.div
                 key={s.label}
-                variants={fade}
-                whileHover={reduced ? {} : { y: -4 }}
+                variants={cardVariant}
+                whileHover={reduced ? {} : { y: -5, boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
                 className="bg-white/8 backdrop-blur border border-white/10 rounded-2xl p-5 text-center"
               >
                 <div className="text-red-300 flex justify-center mb-2">{s.icon}</div>
@@ -159,20 +225,27 @@ export default function HomePage() {
       ═══════════════════════════════════════════ */}
       <section aria-label="Menu categories" className="bg-white border-b border-[--color-border] py-6 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
+          <motion.div
+            variants={stagger(0.05)}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            className="flex gap-3 overflow-x-auto scrollbar-hide pb-1"
+          >
             {QUICK_CATS.map((c) => (
-              <Link
-                key={c.href}
-                href={c.href}
-                className="flex-none flex flex-col items-center gap-1.5 min-w-[72px] bg-[--color-surface] hover:bg-red-50 border border-[--color-border] hover:border-[--color-border-strong] rounded-2xl px-3 py-3 transition-colors duration-150 cursor-pointer group"
-              >
-                <span className="text-2xl" role="img" aria-hidden>{c.icon}</span>
-                <span className="text-xs font-semibold text-[--color-fg-muted] group-hover:text-[--color-primary] text-center leading-tight transition-colors duration-150">
-                  {c.label}
-                </span>
-              </Link>
+              <motion.div key={c.href} variants={cardVariant}>
+                <Link
+                  href={c.href}
+                  className="flex-none flex flex-col items-center gap-1.5 min-w-[72px] bg-[--color-surface] hover:bg-red-50 border border-[--color-border] hover:border-[--color-border-strong] rounded-2xl px-3 py-3 transition-colors duration-150 cursor-pointer group"
+                >
+                  <span className="text-2xl" role="img" aria-hidden>{c.icon}</span>
+                  <span className="text-xs font-semibold text-[--color-fg-muted] group-hover:text-[--color-primary] text-center leading-tight transition-colors duration-150">
+                    {c.label}
+                  </span>
+                </Link>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -184,8 +257,8 @@ export default function HomePage() {
           <motion.div
             initial={reduced ? {} : { opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.65, ease: EASE }}
             className="flex items-end justify-between mb-10"
           >
             <div>
@@ -208,14 +281,16 @@ export default function HomePage() {
             variants={stagger(0.07)}
             initial="hidden"
             whileInView="show"
-            viewport={{ once: true }}
+            viewport={{ once: true, margin: "-80px" }}
             className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5"
           >
-            {popular.map((item) => (
-              <motion.div key={item.id} variants={fade}>
-                <MenuItemCard item={item} />
-              </motion.div>
-            ))}
+            <AnimatePresence>
+              {popular.map((item) => (
+                <motion.div key={item.id} variants={cardVariant}>
+                  <MenuItemCard item={item} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </motion.div>
 
           <div className="text-center mt-10 md:hidden">
@@ -241,8 +316,8 @@ export default function HomePage() {
           <motion.div
             initial={reduced ? {} : { opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.7, ease: EASE }}
           >
             <p className="text-sm font-semibold text-red-200 uppercase tracking-widest mb-3">
               Dine Smarter
@@ -265,10 +340,10 @@ export default function HomePage() {
           </motion.div>
 
           <motion.div
-            initial={reduced ? {} : { opacity: 0, scale: 0.9 }}
+            initial={reduced ? {} : { opacity: 0, scale: 0.88 }}
             whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.7, ease: EASE }}
             className="flex justify-center"
           >
             <div className="bg-white/10 border border-white/20 rounded-3xl p-8 text-center max-w-xs w-full">
@@ -290,9 +365,10 @@ export default function HomePage() {
       ═══════════════════════════════════════════ */}
       <motion.section
         aria-label="Business lunch offer"
-        initial={reduced ? {} : { opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
+        initial={reduced ? {} : { opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 0.65, ease: EASE }}
         className="py-14 px-4 bg-[--color-accent] text-white"
       >
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
@@ -325,10 +401,10 @@ export default function HomePage() {
       <section aria-label="About us" className="py-20 px-4 bg-white">
         <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-16 items-center">
           <motion.div
-            initial={reduced ? {} : { opacity: 0, x: -20 }}
+            initial={reduced ? {} : { opacity: 0, x: -24 }}
             whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.7, ease: EASE }}
           >
             <p className="text-sm font-semibold text-[--color-primary] uppercase tracking-widest mb-3">
               Our Story
@@ -363,24 +439,31 @@ export default function HomePage() {
             </div>
           </motion.div>
 
+          {/* Staggered feature cards */}
           <motion.div
-            initial={reduced ? {} : { opacity: 0, scale: 0.93 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            variants={stagger(0.09)}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-80px" }}
             className="grid grid-cols-2 gap-4"
           >
             {[
-              { icon: <Leaf size={28} className="text-green-600" />, title: "100% Veg", desc: "Certified pure veg — no cross-contamination" },
-              { icon: <UtensilsCrossed size={28} className="text-[--color-primary]" />, title: "Fresh Daily", desc: "Produce sourced every morning" },
-              { icon: <Star size={28} className="text-amber-600 fill-amber-200" />, title: "Garden Setting", desc: "Open-air dining experience" },
-              { icon: <Truck size={28} className="text-[--color-accent]" />, title: "Home Delivery", desc: "Call 8411066897 to order" },
+              { icon: <Leaf size={28} className="text-green-600" />,                   title: "100% Veg",      desc: "Certified pure veg — no cross-contamination" },
+              { icon: <UtensilsCrossed size={28} className="text-[--color-primary]" />, title: "Fresh Daily",   desc: "Produce sourced every morning" },
+              { icon: <Star size={28} className="text-amber-600 fill-amber-200" />,     title: "Garden Setting", desc: "Open-air dining experience" },
+              { icon: <Truck size={28} className="text-[--color-accent]" />,            title: "Home Delivery",  desc: "Call 8411066897 to order" },
             ].map((f) => (
-              <div key={f.title} className="bg-[--color-surface] border border-[--color-border] rounded-2xl p-5">
+              <motion.div
+                key={f.title}
+                variants={cardVariant}
+                whileHover={reduced ? {} : { y: -4 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className="bg-[--color-surface] border border-[--color-border] rounded-2xl p-5"
+              >
                 <div className="mb-3">{f.icon}</div>
                 <h3 className="font-semibold text-[--color-fg] text-sm mb-1">{f.title}</h3>
                 <p className="text-xs text-[--color-fg-muted] leading-relaxed">{f.desc}</p>
-              </div>
+              </motion.div>
             ))}
           </motion.div>
         </div>
@@ -394,9 +477,10 @@ export default function HomePage() {
         className="py-16 px-4 bg-[#1A0000] text-white text-center"
       >
         <motion.div
-          initial={reduced ? {} : { opacity: 0, y: 16 }}
+          initial={reduced ? {} : { opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.65, ease: EASE }}
           className="max-w-2xl mx-auto"
         >
           <p className="text-sm font-semibold text-red-400 uppercase tracking-widest mb-3">
@@ -408,13 +492,16 @@ export default function HomePage() {
           <p className="text-red-300 mb-8 leading-relaxed">
             Outdoor catering orders · Home delivery · Cake orders · +5% GST on all bills
           </p>
-          <a
+          <motion.a
             href="tel:8411066897"
+            whileHover={reduced ? {} : { scale: 1.04 }}
+            whileTap={reduced ? {} : { scale: 0.97 }}
+            transition={{ type: "spring", stiffness: 400, damping: 20 }}
             className="inline-flex items-center gap-3 bg-[--color-primary] hover:bg-[--color-primary-hover] text-white font-bold px-8 py-4 rounded-full text-lg transition-colors duration-200 cursor-pointer shadow-xl"
           >
             <Phone size={22} />
             Call 8411066897
-          </a>
+          </motion.a>
         </motion.div>
       </section>
     </div>
